@@ -1,0 +1,26 @@
+# Temel dizinler
+data_dir: /datasets/external/ai_mix_v16
+outputs_dir: /outputs
+
+# Model Ayarları
+model:
+  name: mistralai/Mistral-7B-v0.1
+  max_len: 1024
+
+# Eğitim Ayarları (PyTorch Lightning Trainer için)
+training:
+  num_nodes: 8
+  epochs: 3
+  per_device_train_batch_size: 4   # GPU başına batch; belleğe göre gerekirse geri çekin.
+  per_device_eval_batch_size: 4
+  gradient_accumulation_steps: 2  # Etkin batch ~ 4 * GPU * 2; daha yüksek kernel doluluğu.
+  num_workers: 8                  # Veri yükleme için her işlemdeki çalışan sayısı.
+
+# Optimizer Ayarları
+optimizer:
+  lr: 0.0001
+  weight_decay: 0.01
+  max_grad_norm: 1.0
+
+# Diğer Ayarlar
+use_wandb: false

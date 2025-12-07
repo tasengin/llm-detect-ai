@@ -51,3 +51,31 @@ wandb:
   run_name: exp010-r-detect
   tags:
     - mistral
+
+hardware:
+  auto_detect_truba: true
+  train_num_workers: 2
+  eval_num_workers: 1
+  train_prefetch_factor: 2
+  eval_prefetch_factor: 2
+  pin_memory: true
+  persistent_workers: true
+  gradient_checkpointing: true
+  set_cudnn_benchmark: true
+  override_train_batch_size: null
+  override_eval_batch_size: null
+  override_grad_accum_steps: null
+  compile_model: false
+  compile_backend: inductor
+  truba_v100:
+    train_num_workers: 6
+    eval_num_workers: 4
+    train_prefetch_factor: 4
+    eval_prefetch_factor: 2
+    pin_memory: true
+    persistent_workers: true
+    gradient_checkpointing: true
+    override_train_batch_size: 2
+    override_eval_batch_size: 2
+    override_grad_accum_steps: 8
+    compile_model: false

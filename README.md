@@ -34,6 +34,102 @@ chmod +x ./setup.sh
 
 Please note that the above script will create `datasets` and `models` folder in the directory located one level above the current directory. The external datasets will be downloaded in the `datasets` folder. Instruction-tuned LLMs, which can be used to generate adversarial essays, will be downloaded in the `models` folder. Total size of downloaded data and model files is ~8GB. 
 
+## Section 1.5: Running on Truba Clusters
+
+This repository has been adapted to run on Truba's GPU clusters (`akya-cuda` and `barbun-cuda`). 
+
+### Cluster Specifications
+
+**akya-cuda:**
+- GPU: 4x NVIDIA V100 16GB per node (NVLink)
+- CPU: 2x Intel Xeon Gold 6248R (40 cores per node)
+- RAM: 384 GB per node
+- Minimum requirements: 10 CPUs and 1 GPU per task
+- Maximum job duration: 3 days
+
+**barbun-cuda:**
+- GPU: 2x NVIDIA P100 16GB per node
+- CPU: 2x Intel Xeon Gold 6248R (40 cores per node)
+- RAM: 384 GB per node
+- Minimum requirements: 20 CPUs and 1 GPU per task
+- Maximum job duration: 3 days
+
+### Running Training Jobs on Truba
+
+The repository includes optimized SLURM scripts for both clusters. Available scripts:
+
+#### LLM Detection Models (train_r_detect.py)
+
+**On akya-cuda (4 nodes, 16 GPUs total):**
+```bash
+sbatch akya.slurm
+```
+
+**On barbun-cuda (2 nodes, 4 GPUs total):**
+```bash
+sbatch barbun.slurm
+```
+
+#### DeBERTa Ranking Models (train_r_ranking.py)
+
+**On akya-cuda:**
+```bash
+sbatch akya_ranking.slurm
+```
+
+**On barbun-cuda:**
+```bash
+sbatch barbun_ranking.slurm
+```
+
+#### Embedding Models (train_r_embed.py)
+
+**On akya-cuda:**
+```bash
+sbatch akya_embed.slurm
+```
+
+**On barbun-cuda:**
+```bash
+sbatch barbun_embed.slurm
+```
+
+#### PyTorch Lightning Training (train_r_detect_lightning.py)
+
+**On akya-cuda (single node, 4 GPUs):**
+```bash
+sbatch akya2.slurm
+```
+
+The SLURM scripts automatically:
+- Configure FSDP for multi-node training
+- Set up NCCL for InfiniBand communication
+- Mount necessary directories (datasets, outputs)
+- Use the appropriate cluster-specific FSDP configuration
+- Set optimal environment variables for Truba clusters
+
+### Cluster-Specific FSDP Configurations
+
+- `conf/fsdp_config_akya.yaml`: Configured for 4 nodes × 4 GPUs = 16 total GPUs
+- `conf/fsdp_config_barbun.yaml`: Configured for 2 nodes × 2 GPUs = 4 total GPUs
+
+These configurations are automatically used by the respective SLURM scripts.
+
+### Monitoring Jobs
+
+Check job status:
+```bash
+squeue -u $USER
+```
+
+View logs:
+```bash
+tail -f slurm_logs/akya-training-<JOB_ID>.out
+tail -f slurm_logs/barbun-training-<JOB_ID>.out
+```
+
+For more information about Truba clusters, see: https://docs.truba.gov.tr/
+
 ## Section 2: Training
 Training scripts and configurations are located in the `code` and `conf` folders respectively. We leveraged HF `accelerate` library to execute training runs with DDP on multiple GPUs (4x A100). Specifically, we used the following configurations for training:
 

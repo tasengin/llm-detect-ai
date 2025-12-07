@@ -1,6 +1,6 @@
 seed: 424
 use_wandb: false
-input_data_dir: ../datasets/external/ai_mix_v16
+input_data_dir: /datasets/external/ai_mix_v16
 
 model:
   backbone_path: mistralai/Mistral-7B-v0.1
@@ -23,10 +23,11 @@ model:
       - classification_head
 
 train_params:
-  per_device_train_batch_size: 1 # run on 4x A100
-  per_device_eval_batch_size: 1
+  per_device_train_batch_size: 4
+  per_device_eval_batch_size: 4
   num_train_epochs: 1 # 16
-  gradient_accumulation_steps: 4
+  gradient_accumulation_steps: 2
+  num_nodes: 2
 
   warmup_pct: 0.1
   eval_frequency: 500
@@ -44,10 +45,38 @@ optimizer:
   max_grad_norm: 0.5
 
 outputs:
-  model_dir: ../models/r_detect_mix_v16
+  model_dir: outputs/models/r_detect_mix_v16
 
 wandb:
   project: detect-ai-a1
   run_name: exp010-r-detect
   tags:
     - mistral
+
+hardware:
+  auto_detect_truba: true
+  train_num_workers: 8
+  eval_num_workers: 4
+  train_prefetch_factor: 4
+  eval_prefetch_factor: 2
+  pin_memory: true
+  persistent_workers: true
+  gradient_checkpointing: true
+  set_cudnn_benchmark: true
+  override_train_batch_size: null
+  override_eval_batch_size: null
+  override_grad_accum_steps: null
+  compile_model: false
+  compile_backend: inductor
+  truba_v100:
+    train_num_workers: 6
+    eval_num_workers: 4
+    train_prefetch_factor: 4
+    eval_prefetch_factor: 2
+    pin_memory: true
+    persistent_workers: true
+    gradient_checkpointing: true
+    override_train_batch_size: 2
+    override_eval_batch_size: 2
+    override_grad_accum_steps: 8
+    compile_model: false
