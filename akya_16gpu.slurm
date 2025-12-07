@@ -37,7 +37,7 @@ export HF_DATASETS_CACHE=/datasets/hf_cache
 
 # Get the first node name as master address
 MASTER_ADDR=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -1)
-MASTER_PORT=29500
+MASTER_PORT=$((29500 + RANDOM % 1000))
 
 echo "=========================================="
 echo "SLURM Job ID: ${SLURM_JOB_ID}"
@@ -49,9 +49,6 @@ echo "Number of nodes: $SLURM_NNODES"
 echo "GPUs per node: 4"
 echo "Total GPUs: $((SLURM_NNODES * 4))"
 echo "=========================================="
-
-mkdir -p ./outputs
-mkdir -p ./slurm_logs
 
 # Launch training with srun + torchrun for multi-node execution
 srun --ntasks-per-node=1 bash -c "

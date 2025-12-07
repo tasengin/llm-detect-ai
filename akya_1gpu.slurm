@@ -37,9 +37,6 @@ echo "Start Time: $(date --utc)"
 echo "GPUs: 1"
 echo "=========================================="
 
-#mkdir -p ./outputs
-#mkdir -p ./slurm_logs
-
 # Launch training with torchrun for single GPU
 apptainer exec \
     --nv \

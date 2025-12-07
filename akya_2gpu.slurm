@@ -38,9 +38,6 @@ echo "Start Time: $(date --utc)"
 echo "GPUs: 2"
 echo "=========================================="
 
-mkdir -p ./outputs
-mkdir -p ./slurm_logs
-
 # Launch training with torchrun for 2 GPUs on single node
 apptainer exec \
     --nv \

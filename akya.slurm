@@ -50,9 +50,6 @@ echo "GPUs per node: 4"
 echo "Total GPUs: $((SLURM_NNODES * 4))"
 echo "=========================================="
 
-mkdir -p ./outputs
-mkdir -p ./slurm_logs
-
 # Launch training with srun + torchrun for multi-node execution
 srun --ntasks-per-node=1 bash -c "
 export MASTER_ADDR=$MASTER_ADDR
