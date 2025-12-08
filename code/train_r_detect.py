@@ -180,7 +180,7 @@ def run_evaluation(model, valid_dl, valid_ids, local_rank, rank, world_size):
         flat_truths = [item for sublist in gathered_truths for item in sublist]
 
         # compute metric
-        eval_dict = compute_metrics(flat_predictions, flat_truths)
+        eval_dict = compute_metrics([round(p) for p in flat_predictions], flat_truths)
 
         result_df = pd.DataFrame()
         result_df["id"] = valid_ids[:len(flat_predictions)]  # Ensure ids match gathered results
