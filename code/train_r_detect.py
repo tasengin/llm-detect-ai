@@ -175,15 +175,15 @@ def run_evaluation(model, valid_dl, valid_ids, local_rank, rank, world_size):
     dist.all_gather_object(gathered_truths, all_truths)
 
     if rank == 0:
-        # Flatten the gathered lists
-        flat_predictions = [item for sublist in gathered_predictions for item in sublist]
-        flat_truths = [item for sublist in gathered_truths for item in sublist]
+        # Flatten the gathered lists of lists
+        flat_predictions = [item for sublist in gathered_predictions for item_list in sublist for item in item_list]
+        flat_truths = [item for sublist in gathered_truths for item_list in sublist for item in item_list]
 
         # compute metric
-        eval_dict = compute_metrics([round(p) for p in flat_predictions], flat_truths)
+        eval_dict = compute_metrics(flat_predictions, flat_truths)
 
         result_df = pd.DataFrame()
-        result_df["id"] = valid_ids[:len(flat_predictions)]  # Ensure ids match gathered results
+        result_df["id"] = valid_ids[:len(flat_predictions)]
         result_df["predictions"] = flat_predictions
         result_df["truths"] = flat_truths
 
