@@ -161,7 +161,12 @@ def run_evaluation(model, valid_dl, valid_ids, local_rank, rank, world_size):
         logits = outputs.logits
         predictions = torch.sigmoid(logits)
 
-        all_predictions.extend(predictions.cpu().numpy().tolist())
+        # Squeeze to handle cases like (batch, 1) -> (batch,) and ensure it's always 1D
+        squeezed_preds = predictions.squeeze(-1)
+        # If batch size was 1, squeeze might return a 0D tensor, so we ensure it's at least 1D
+        if squeezed_preds.dim() == 0:
+            squeezed_preds = squeezed_preds.unsqueeze(0)
+        all_predictions.extend(squeezed_preds.cpu().numpy().tolist())
         all_truths.extend(batch["labels"].cpu().numpy().tolist())
 
         progress_bar.update(1)
@@ -175,9 +180,9 @@ def run_evaluation(model, valid_dl, valid_ids, local_rank, rank, world_size):
     dist.all_gather_object(gathered_truths, all_truths)
 
     if rank == 0:
-        # Flatten the gathered lists of lists
-        flat_predictions = [item for sublist in gathered_predictions for item_list in sublist for item in item_list]
-        flat_truths = [item for sublist in gathered_truths for item_list in sublist for item in item_list]
+        # Flatten the gathered lists
+        flat_predictions = [item for sublist in gathered_predictions for item in sublist]
+        flat_truths = [item for sublist in gathered_truths for item in sublist]
 
         # compute metric
         eval_dict = compute_metrics(flat_predictions, flat_truths)
@@ -444,6 +449,22 @@ def run_training(cfg):
         save_trigger = cfg.train_params.save_trigger
         patience_tracker = 0
         current_iteration = 0
+
+        # Optional: Run an initial evaluation before training starts
+        if cfg.train_params.get("initial_eval", False):
+            if rank == 0:
+                print_line()
+                print(">>> Running initial evaluation (dry run)...")
+                print_line()
+            eval_response = run_evaluation(model, valid_dl, valid_ids, local_rank, rank, world_size)
+            if rank == 0:
+                scores_dict = eval_response["scores"]
+                lb = scores_dict["lb"]
+                print_line()
+                print(f">>> Initial LB (AUC) on untrained model = {round(lb, 4)}")
+                print_line()
+            model.train()  # Switch back to train mode
+            torch.cuda.empty_cache()
 
         start_time = time.time()
         dist.barrier()
